@@ -523,6 +523,8 @@ public:
 
         bool isCallScreenModeSupported() override;
 
+        void setBtWiredCoPlayEnabled(bool enabled) override;
+
         void onNewAudioModulesAvailable() override;
 
         status_t getMmapPolicyInfos(
@@ -579,6 +581,10 @@ protected:
         virtual const sp<DeviceDescriptor> &getDefaultOutputDevice() const
         {
             return mConfig->getDefaultOutputDevice();
+        }
+        virtual bool isBtWiredCoPlayEnabled() const
+        {
+            return mBtWiredCoPlayEnabled;
         }
 
         std::vector<volume_group_t> getVolumeGroups() const
@@ -900,6 +906,16 @@ protected:
         std::set<audio_io_handle_t> getOutputsForDevices(
                 const DeviceVector &devices, const SwAudioOutputCollection& openOutputs);
 
+        static const DeviceTypeSet& getCoPlayBtDeviceTypes();
+
+        static const DeviceTypeSet& getCoPlayWiredDeviceTypes();
+
+        bool isCoPlayDeviceSet(const DeviceVector &devices) const;
+
+        void updateCoPlayOutput();
+
+        void closeCoPlayOutput();
+
         /**
          * @brief checkDeviceMuteStrategies mute/unmute strategies
          *      using an incompatible device combination.
@@ -1097,6 +1113,11 @@ protected:
         // list of descriptors for outputs currently opened
 
         sp<SwAudioOutputDescriptor> mSpatializerOutput;
+
+        bool mBtWiredCoPlayEnabled = false;
+        sp<SwAudioOutputDescriptor> mCoPlayOutput;      // duplicating output, null when inactive
+        sp<SwAudioOutputDescriptor> mCoPlayWiredOutput; // sub output 1: wired or USB device
+        sp<SwAudioOutputDescriptor> mCoPlayBtOutput;    // sub output 2: Bluetooth A2DP device
 
         SwAudioOutputCollection mOutputs;
         // copy of mOutputs before setDeviceConnectionState() opens new outputs
